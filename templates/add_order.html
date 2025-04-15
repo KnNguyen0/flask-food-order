@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Order</title>
+</head>
+<body>
+    <h1>Add a New Order</h1>
+    <form method="POST">
+        Name: <input type="text" name="name" required><br>
+        Order Item: <input type="text" name="order_item" required><br>
+        Cost: <input type="number" step="0.01" name="cost" required><br>
+        <!-- Display the current date and time -->
+        <p>Date and Time: <span id="currentDateTime"></span></p>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // Automatically update the current date and time in the form
+        const dateTimeElement = document.getElementById("currentDateTime");
+        const now = new Date();
+        dateTimeElement.textContent = now.toLocaleString(); // Example: "MM/DD/YYYY, HH:MM:SS AM/PM"
+    </script>
+</body>
+</html>
