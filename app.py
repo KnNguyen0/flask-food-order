@@ -16,24 +16,113 @@ def home():
 
 # Route for adding a new order
 @app.route("/add", methods=["GET", "POST"])
-
 def add_order():
     if request.method == "POST":
-        name = request.form["name"]
-        order_item = request.form["order_item"]
-        cost = request.form["cost"]
-        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current date and time in YYYY-MM-DD HH:MM:SS format
+        name = request.form.get("name")  # Safely extract form data
+        order_item = request.form.get("order_item")
+        cost = request.form.get("cost")
+        place = request.form.get("place")  # Get the place input
 
-        connection = connect_db()
+        if not name or not order_item or not cost or not place:
+            return "Error: Missing required fields!", 400
+        
+         
+        # Connect to database and insert order
+        connection = sqlite3.connect("food_orders.db")
         cursor = connection.cursor()
+        
         cursor.execute("""
-        INSERT INTO orders (name, order_item, cost, date)
-        VALUES (?, ?, ?, ?)
-        """, (name, order_item, float(cost), date))
+        INSERT INTO orders (name, order_item, cost, date, place)
+        VALUES (?, ?, ?, ?, ?)
+        """, (name, order_item, float(cost), datetime.now().strftime("%Y-%m-%d %H:%M:%S"), place))
+
+
+        
         connection.commit()
         connection.close()
-        return redirect("/")
-    return render_template("add_order.html")
+
+        return redirect("/view")  # Redirect to view all orders
+
+    return render_template("add_order.html")  # Show the form
+
+def update_db():
+    connection = sqlite3.connect("food_orders.db")
+    cursor = connection.cursor()
+    try:
+        cursor.execute("ALTER TABLE orders ADD COLUMN place TEXT")
+        connection.commit()
+        print("Column 'place' added successfully!")
+    except sqlite3.OperationalError:
+        print("Column 'place' might already exist!")
+    connection.close()
+
+# Run update_db() once at startup
+update_db()
+
+def get_total_price(name):
+    connection = sqlite3.connect("food_orders.db")
+    cursor = connection.cursor()
+
+    # Calculate total cost for a specific customer
+    cursor.execute("SELECT SUM(cost) FROM orders WHERE name = ?", (name,))
+    total_price = cursor.fetchone()[0]  # Get the sum value
+
+    connection.close()
+
+    return total_price if total_price else 0
+
+def search_customer():
+    if request.method == "POST":
+        name = request.form["name"]
+        connection = sqlite3.connect("food_orders.db")
+        cursor = connection.cursor()
+        
+        cursor.execute("SELECT * FROM orders WHERE name LIKE ?", (f"%{name}%",))
+        orders = cursor.fetchall()
+
+        # Get total price
+        total_price = get_total_price(name)
+
+        connection.close()
+        return render_template("search_results.html", orders=orders, name=name, total_price=total_price)
+    
+    return render_template("search.html")
+
+#Search  for all orders
+@app.route("/search", methods=["GET", "POST"])
+def search_orders():
+    if request.method == "POST":
+        search_query = request.form["search"]  # Get search input
+        connection = sqlite3.connect("food_orders.db")
+        cursor = connection.cursor()
+        
+        # Search for matching orders (case-insensitive)
+        cursor.execute("SELECT * FROM orders WHERE name LIKE ? OR order_item LIKE ?", (f"%{search_query}%", f"%{search_query}%"))
+        orders = cursor.fetchall()
+
+        connection.close()
+        return render_template("search_results.html", orders=orders, search_query=search_query)
+    
+    return render_template("search.html")  # Display search form
+
+@app.route("/search", methods=["GET", "POST"])
+def search_customer():
+    if request.method == "POST":
+        name = request.form["name"]
+        connection = sqlite3.connect("food_orders.db")
+        cursor = connection.cursor()
+        
+        cursor.execute("SELECT * FROM orders WHERE name LIKE ?", (f"%{name}%",))
+        orders = cursor.fetchall()
+
+        # Get total price
+        total_price = get_total_price(name)
+
+        connection.close()
+        return render_template("search_results.html", orders=orders, name=name, total_price=total_price)
+    
+    return render_template("search.html")
+
 
 # Route for viewing all orders
 @app.route("/view")
@@ -57,9 +146,12 @@ CREATE TABLE IF NOT EXISTS orders (
     name TEXT NOT NULL,
     order_item TEXT NOT NULL,
     cost REAL NOT NULL,
-    date TEXT NOT NULL
+    date TEXT NOT NULL,
+    place TEXT NOT NULL
 )
 """)
+    
+    
 
     connection.commit()
     connection.close()

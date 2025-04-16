@@ -16,17 +16,18 @@ try:
     print("The 'date' column has been successfully added!")
 except sqlite3.OperationalError:
     print("The 'date' column already exists!")
+    cursor.execute("ALTER TABLE orders ADD COLUMN place TEXT")
 
 # Function to add a new order
-def add_order(name, order_item, cost):
+def add_order(name, order_item, cost, place):
     # Capture the current date and time in the desired format
     date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     # Update the INSERT query to include the 'date' column
     cursor.execute("""
-    INSERT INTO orders (name, order_item, cost, date)
-    VALUES (?, ?, ?, ?)
-    """, (name, order_item, cost, date))
+    INSERT INTO orders (name, order_item, cost, date, place)
+    VALUES (?, ?, ?, ?,?)
+    """, (name, order_item, cost, date, place))
     connection.commit()
     print(f"Order for {name} added successfully on {date}!")
 
@@ -36,7 +37,7 @@ def view_orders():
     rows = cursor.fetchall()
     for row in rows:
         # Display the 'date' field along with other details
-        print(f"ID: {row[0]}, Name: {row[1]}, Order Item: {row[2]}, Cost: ${row[3]}, Date: {row[4]}")
+        print(f"ID: {row[0]}, Name: {row[1]}, Order Item: {row[2]}, Cost: ${row[3]}, Date: {row[4]}, Place: {row[5]}")
 
 # Menu for user input
 while True:
@@ -51,7 +52,8 @@ while True:
         name = input("Enter customer name: ")
         order_item = input("Enter order item: ")
         cost = float(input("Enter cost of the item: "))
-        add_order(name, order_item, cost)
+        place = input("Enter place name")
+        add_order(name, order_item, cost, place)
     elif choice == "2":
         print("\nAll Orders:")
         view_orders()

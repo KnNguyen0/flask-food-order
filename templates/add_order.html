@@ -9,6 +9,10 @@
         Name: <input type="text" name="name" required><br>
         Order Item: <input type="text" name="order_item" required><br>
         Cost: <input type="number" step="0.01" name="cost" required><br>
+        Place: <input type="text" name="place" required><br>  <!-- Ensure this field exists -->
+        <button type="submit">Submit</button>
+    </form>
+    
         <!-- Display the current date and time -->
         <p>Date and Time: <span id="currentDateTime"></span></p>
         <button type="submit">Submit</button>
@@ -21,4 +25,6 @@
         dateTimeElement.textContent = now.toLocaleString(); // Example: "MM/DD/YYYY, HH:MM:SS AM/PM"
     </script>
 </body>
+<a href="/">
+    <button>Back to Home</button>
 </html>

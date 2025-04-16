@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>View Orders</title>
+    <title>Search Results</title>
 </head>
-<form action="/search" method="POST">
-    <input type="text" name="search" placeholder="Search orders...">
-    <button type="submit">Search</button>
-</form>
 <body>
-    <h1>All Orders</h1>
+    <h1>Search Results for "{{ search_query }}"</h1>
+    
+    <h2>Search Results for "{{ name }}"</h2>
+    
+{% if orders %}
+    <p><strong>Total Price for {{ name }}:</strong> ${{ total_price }}</p>  <!-- Display total cost -->
+    
     <table border="1">
         <tr>
             <th>ID</th>
@@ -16,7 +18,7 @@
             <th>Order Item</th>
             <th>Cost</th>
             <th>Date</th>
-            <th>place</th>
+            <th>Place</th>
         </tr>
         {% for order in orders %}
         <tr>
@@ -24,13 +26,18 @@
             <td>{{ order[1] }}</td>
             <td>{{ order[2] }}</td>
             <td>${{ order[3] }}</td>
-            <td>{{ order[4] }}</td> <!-- Add this field to display the date -->
+            <td>{{ order[4] }}</td>
             <td>{{ order[5] }}</td>
         </tr>
         {% endfor %}
     </table>
+{% else %}
+    <p>No orders found for this customer.</p>
+{% endif %}
+
+    
+    <a href="/search">Back to Search</a>
     <a href="/">
         <button>Back to Home</button>
-    </a>
 </body>
 </html>
